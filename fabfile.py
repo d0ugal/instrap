@@ -2,7 +2,6 @@ import os
 
 from fabric.api import env, settings, sudo
 
-#UNDERCLOUD_REPO = "https://github.com/agroup/instack-undercloud"
 UNDERCLOUD_REPO = "https://github.com/d0ugal/instack-undercloud.git"
 
 TRIPLEO_REPO = "https://git.openstack.org/openstack/tripleo-incubator"
