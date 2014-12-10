@@ -8,7 +8,6 @@ TRIPLEO_REPO = "https://git.openstack.org/openstack/tripleo-incubator"
 SOURCERC = "instack-undercloud/instack-sourcerc"
 
 env.user = 'root'
-env.hosts = ['ibm-x3550m3-16.lab.eng.brq.redhat.com']
 
 IMAGES = [
     'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/SHA256SUMS',
