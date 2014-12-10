@@ -1,6 +1,6 @@
-import os
+from __future__ import print_function
 
-from fabric.api import env, settings, sudo
+from fabric.api import cd, env, settings, sudo
 
 UNDERCLOUD_REPO = "https://github.com/d0ugal/instack-undercloud.git"
 
@@ -29,8 +29,6 @@ IMAGES = [
     'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-swift-storage.qcow2',
     'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-swift-storage.vmlinuz ',
 ]
-
-UNDERCLOUD_IP = os.environ.get('UNDERCLOUD_IP')
 
 
 def _tmux_create(name, kill=True):
@@ -62,7 +60,12 @@ def _host_download_images():
 
 def _host_create_user():
     # Step 1
-    sudo('useradd stack')
+    result = sudo('useradd stack', warn_only=True)
+
+    if result.return_code != 0:
+        print("User already exists.")
+        return
+
     sudo('echo "stack:stack" | chpasswd')
     sudo('echo "stack ALL=(root) NOPASSWD:ALL" '
          '| sudo tee -a /etc/sudoers.d/stack')
@@ -87,6 +90,15 @@ def _host_initial_setup():
     _tmux('tripleo-setup', "tripleo set-usergroup-membership")
 
 
+def _undercloud_ip():
+
+    with cd("~/instack"):
+        mac = sudo("source {} && tripleo get-vm-mac instack".format(SOURCERC), user='stack')
+
+    ip = sudo("cat /var/lib/libvirt/dnsmasq/default.leases | grep {} | awk '{{print $3;}}'".format(mac), user='stack')
+    return ip
+
+
 def host():
     """Setup the host. Create user, download images, tripleo setup"""
     # Step 0
@@ -105,6 +117,16 @@ def host():
 def host_virsh_list():
     """Display the status of the VM's used for the undercloud virst setup"""
     sudo("virsh list --all", user="stack")
+
+
+def host_tmux_list():
+    """Display the active tmux sessions"""
+    sudo("tmux ls", user="stack")
+
+
+def host_list_images():
+    """Display the active tmux sessions"""
+    sudo("ls -la ~/images", user="stack")
 
 
 def undercloud_create():
@@ -134,15 +156,14 @@ def undercloud_destroy():
 def _undercloud_ssh():
     # step 6
 
-    if UNDERCLOUD_IP is None:
-        print "Set the UNDERCLOUD_IP environment setting"
-        return
+    ip = _undercloud_ip()
 
     _tmux_create("undercloud")
-    _tmux('undercloud', "ssh stack@{}".format(UNDERCLOUD_IP))
+    _tmux('undercloud', "ssh stack@{}".format(ip))
     _tmux('undercloud', "stack")
     _tmux('undercloud', "git clone {}".format(UNDERCLOUD_REPO))
     _tmux('undercloud', "source instack-undercloud/instack-sourcerc")
+    _tmux('undercloud', "export PACKAGES=0")
     _tmux('undercloud', "instack-install-undercloud-source")
     _tmux('undercloud', "sudo cp /root/tripleo-undercloud-passwords ~/")
     _tmux('undercloud', "sudo cp /root/stackrc ~/")
@@ -151,11 +172,9 @@ def _undercloud_ssh():
 def _undercloud_copy_images():
     # step 7
 
-    if UNDERCLOUD_IP is None:
-        print "Set the UNDERCLOUD_IP environment setting"
-        return
+    ip = _undercloud_ip()
 
-    sudo("scp ~/images/* stack@{}:".format(UNDERCLOUD_IP), user='stack')
+    sudo("scp ~/images/* stack@{}:".format(ip), user='stack')
 
 
 def undercloud_setup():

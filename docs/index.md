@@ -21,3 +21,30 @@ commands.
     pip install -r requirements.txt
 
 Then to view the commands run `fab -l` from within the directory.
+
+
+## Running Instrap
+
+To setup instack with Instrap, the commands need to be run in a
+specific order. To execute these commands you will need to invoke
+them as `fab -H $HOST $COMMAND`
+
+### 1. host
+
+This command does some basic host setup.
+
+- install tmux and git
+- create a stack user with password-less sudo
+- Checkout TripleO and install dependencies
+- Start the download of the Juno images used later for the
+  undercloud.
+
+### 2. undercloud_create
+
+Creates the instack virt setup, four virtual machines to emulate
+a baremetal setup.
+
+
+### 3. undercloud_setup
+
+
