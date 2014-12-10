@@ -77,7 +77,7 @@ def _host_initial_setup():
     # Step 2 & 3
 
     sudo("mkdir -p ~/instack", user='stack')
-    _tmux_create("tripleo-setup", user="stack")
+    _tmux_create("tripleo-setup")
     _tmux('tripleo-setup', 'cd ~/instack')
     _tmux('tripleo-setup', "git clone {}".format(UNDERCLOUD_REPO))
     _tmux('tripleo-setup', "git clone {}".format(TRIPLEO_REPO))
