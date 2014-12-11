@@ -10,32 +10,30 @@ SOURCERC = "instack-undercloud/instack-sourcerc"
 env.user = 'root'
 
 IMAGES = [
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/SHA256SUMS',
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/deploy-ramdisk-ironic.initramfs',
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/deploy-ramdisk-ironic.kernel',
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/discovery-ramdisk.initramfs',
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/discovery-ramdisk.kernel',
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/fedora-user.qcow2',
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-cinder-volume.initrd',
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-cinder-volume.qcow2',
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-cinder-volume.vmlinuz',
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-compute.initrd',
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-compute.qcow2',
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-compute.vmlinuz',
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-control.initrd',
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-control.qcow2',
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-control.vmlinuz',
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-swift-storage.initrd',
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-swift-storage.qcow2',
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-swift-storage.vmlinuz ',
+    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/SHA256SUMS',  # NOQA
+    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/deploy-ramdisk-ironic.initramfs',  # NOQA
+    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/deploy-ramdisk-ironic.kernel',  # NOQA
+    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/discovery-ramdisk.initramfs',  # NOQA
+    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/discovery-ramdisk.kernel',  # NOQA
+    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/fedora-user.qcow2',  # NOQA
+    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-cinder-volume.initrd',  # NOQA
+    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-cinder-volume.qcow2',  # NOQA
+    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-cinder-volume.vmlinuz',  # NOQA
+    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-compute.initrd',  # NOQA
+    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-compute.qcow2',  # NOQA
+    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-compute.vmlinuz',  # NOQA
+    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-control.initrd',  # NOQA
+    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-control.qcow2',  # NOQA
+    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-control.vmlinuz',  # NOQA
+    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-swift-storage.initrd',  # NOQA
+    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-swift-storage.qcow2',  # NOQA
+    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-swift-storage.vmlinuz ',  # NOQA
 ]
 
 
-def _tmux_create(name, kill=True):
-    if kill:
-        sudo("tmux kill-session -t {}".format(name),
-             user="stack", warn_only=True)
-    sudo("tmux new -d -s {}".format(name), user="stack", )
+def _tmux_create(name):
+    sudo("tmux kill-session -t {}".format(name), user="stack", warn_only=True)
+    sudo("tmux new -d -s {}".format(name), user="stack", warn_only=True)
 
 
 def _tmux(session, command):
@@ -46,7 +44,7 @@ def _tmux(session, command):
 def _host_setup():
     # Step 0
     sudo('yum upgrade -qy')
-    sudo('yum install -qy git tmux')
+    sudo('yum install -qy git tmux sshpass')
 
 
 def _host_download_images():
@@ -91,15 +89,18 @@ def _host_initial_setup():
 
 
 def undercloud_ip():
+    """Output the IP address of the undercloud if it has been created"""
 
     with cd("~/instack"):
-        mac = sudo("source {} && tripleo get-vm-mac instack".format(SOURCERC), user='stack')
+        mac = sudo("source {} && tripleo get-vm-mac instack".format(
+            SOURCERC), user='stack')
 
     if not mac:
         print("Undercloud not found.")
         return
 
-    ip = sudo("cat /var/lib/libvirt/dnsmasq/default.leases | grep {} | awk '{{print $3;}}'".format(mac), user='stack')
+    ip = sudo(("cat /var/lib/libvirt/dnsmasq/default.leases "
+               "| grep {} | awk '{{print $3;}}'").format(mac), user='stack')
 
     print("Undercloud IP", ip)
 
@@ -187,7 +188,8 @@ def _undercloud_copy_images():
     if not ip:
         return
 
-    sudo("scp ~/images/* stack@{}:".format(ip), user='stack')
+    sudo("sshpass -p 'stack' scp ~/images/* stack@{}:".format(ip),
+         user='stack')
 
 
 def undercloud_setup():
