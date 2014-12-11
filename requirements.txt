@@ -1,2 +1,2 @@
-Fabric==1.10.0
-MkDocs>=0.11.1
+Fabric
+MkDocs

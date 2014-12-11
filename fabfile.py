@@ -90,12 +90,19 @@ def _host_initial_setup():
     _tmux('tripleo-setup', "tripleo set-usergroup-membership")
 
 
-def _undercloud_ip():
+def undercloud_ip():
 
     with cd("~/instack"):
         mac = sudo("source {} && tripleo get-vm-mac instack".format(SOURCERC), user='stack')
 
+    if not mac:
+        print("Undercloud not found.")
+        return
+
     ip = sudo("cat /var/lib/libvirt/dnsmasq/default.leases | grep {} | awk '{{print $3;}}'".format(mac), user='stack')
+
+    print("Undercloud IP", ip)
+
     return ip
 
 
@@ -156,7 +163,10 @@ def undercloud_destroy():
 def _undercloud_ssh():
     # step 6
 
-    ip = _undercloud_ip()
+    ip = undercloud_ip()
+
+    if not ip:
+        return
 
     _tmux_create("undercloud")
     _tmux('undercloud', "ssh stack@{}".format(ip))
@@ -172,7 +182,10 @@ def _undercloud_ssh():
 def _undercloud_copy_images():
     # step 7
 
-    ip = _undercloud_ip()
+    ip = undercloud_ip()
+
+    if not ip:
+        return
 
     sudo("scp ~/images/* stack@{}:".format(ip), user='stack')
 
