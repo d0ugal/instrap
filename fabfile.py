@@ -42,8 +42,8 @@ def _tmux(session, command):
 
 def _host_setup():
     # Step 0
-    sudo('yum upgrade -qy')
-    sudo('yum install -qy git tmux sshpass')
+    sudo('yum upgrade -q -y')
+    sudo('yum install -q -y git tmux sshpass')
 
 
 def _host_download_images():
