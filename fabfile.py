@@ -2,8 +2,7 @@ from __future__ import print_function
 
 from fabric.api import cd, env, settings, sudo
 
-UNDERCLOUD_REPO = "https://github.com/d0ugal/instack-undercloud.git"
-
+UNDERCLOUD_REPO = "https://github.com/agroup/instack-undercloud.git"
 TRIPLEO_REPO = "https://git.openstack.org/openstack/tripleo-incubator"
 SOURCERC = "instack-undercloud/instack-sourcerc"
 
@@ -124,7 +123,7 @@ def host():
 
 def host_virsh_list():
     """Display the status of the VM's used for the undercloud virst setup"""
-    sudo("virsh list --all", user="stack")
+    return sudo("virsh list --all", user="stack")
 
 
 def host_tmux_list():
@@ -151,12 +150,16 @@ def undercloud_create():
 def undercloud_destroy():
     """Destroy the virt machines for the undercloud """
 
+    vms = host_virsh_list()
+
     names = ['baremetal_{}'.format(i) for i in range(4)]
     names.append('instack')
 
     sudo("virsh list --all", user="stack")
 
     for name in names:
+        if name not in vms:
+            continue
         sudo("virsh destroy {}".format(name), user="stack", warn_only=True)
         sudo("virsh undefine {}".format(name), user="stack")
 
