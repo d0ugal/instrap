@@ -2,7 +2,10 @@ from __future__ import print_function
 
 from fabric.api import cd, env, settings, sudo
 
-UNDERCLOUD_REPO = "https://github.com/agroup/instack-undercloud.git"
+from instrap import tmux
+
+
+UNDERCLOUD_REPO = "https://github.com/d0ugal/instack-undercloud.git"
 TRIPLEO_REPO = "https://git.openstack.org/openstack/tripleo-incubator"
 SOURCERC = "instack-undercloud/instack-sourcerc"
 
@@ -30,20 +33,6 @@ IMAGES = [
 ]
 
 
-def _tmux_create(name):
-    sudo("tmux kill-session -t {}".format(name), user="stack", warn_only=True)
-    sudo("tmux new -d -s {}".format(name), user="stack", warn_only=True)
-
-
-def _tmux(session, command):
-    send = "tmux send -t {0}.0 '{1}' ENTER".format(session, command)
-    return sudo(send, user="stack")
-
-
-def _tmux_buffer(session):
-    sudo("tmux capture-pane -p -t {0}".format(session), user="stack")
-
-
 def _host_setup():
     # Step 0
     sudo('yum upgrade -q -y')
@@ -53,10 +42,10 @@ def _host_setup():
 def _host_download_images():
     # step 7 prep (Start early)
     sudo("mkdir -p ~/images", user='stack')
-    _tmux_create("image-dl")
-    _tmux('image-dl', 'cd ~/images')
+    tmux.create_session("image-dl")
+    tmux.run_command('image-dl', 'cd ~/images')
     for f in IMAGES:
-        _tmux('image-dl', "wget {}".format(f))
+        tmux.run_command('image-dl', "wget {}".format(f))
 
 
 def _host_create_user():
@@ -81,14 +70,14 @@ def _host_initial_setup():
     # Step 2 & 3
 
     sudo("mkdir -p ~/instack", user='stack')
-    _tmux_create("tripleo")
-    _tmux('tripleo', 'cd ~/instack')
-    _tmux('tripleo', "git clone {}".format(UNDERCLOUD_REPO))
-    _tmux('tripleo', "git clone {}".format(TRIPLEO_REPO))
+    tmux.create_session("tripleo")
+    tmux.run_command('tripleo', 'cd ~/instack')
+    tmux.run_command('tripleo', "git clone {}".format(UNDERCLOUD_REPO))
+    tmux.run_command('tripleo', "git clone {}".format(TRIPLEO_REPO))
 
-    _tmux('tripleo', "source {}".format(SOURCERC))
-    _tmux('tripleo', "tripleo install-dependencies")
-    _tmux('tripleo', "tripleo set-usergroup-membership")
+    tmux.run_command('tripleo', "source {}".format(SOURCERC))
+    tmux.run_command('tripleo', "tripleo install-dependencies")
+    tmux.run_command('tripleo', "tripleo set-usergroup-membership")
 
 
 def undercloud_ip():
@@ -137,7 +126,7 @@ def host_tmux_list():
 
 def host_tmux_buffer(session):
     """Display the current buffer for a given tmux session"""
-    _tmux_buffer(session)
+    tmux.get_buffer(session)
 
 
 def host_list_images():
@@ -149,11 +138,11 @@ def undercloud_create():
     """Create and start virtual environment for instack"""
     # step 4 & 5
 
-    _tmux_create("instack")
-    _tmux('instack', 'sudo su - stack')
-    _tmux('instack', 'cd ~/instack')
-    _tmux('instack', "source {}".format(SOURCERC))
-    _tmux('instack', "instack-virt-setup")
+    tmux.create_session("instack")
+    tmux.run_command('instack', 'sudo su - stack')
+    tmux.run_command('instack', 'cd ~/instack')
+    tmux.run_command('instack', "source {}".format(SOURCERC))
+    tmux.run_command('instack', "instack-virt-setup")
 
 
 def undercloud_destroy():
@@ -181,15 +170,15 @@ def _undercloud_ssh():
     if not ip:
         return
 
-    _tmux_create("undercloud")
-    _tmux('undercloud', "ssh stack@{}".format(ip))
-    _tmux('undercloud', "stack")
-    _tmux('undercloud', "git clone {}".format(UNDERCLOUD_REPO))
-    _tmux('undercloud', "source instack-undercloud/instack-sourcerc")
-    _tmux('undercloud', "export PACKAGES=0")
-    _tmux('undercloud', "instack-install-undercloud-source")
-    _tmux('undercloud', "sudo cp /root/tripleo-undercloud-passwords ~/")
-    _tmux('undercloud', "sudo cp /root/stackrc ~/")
+    tmux.create_session("undercloud")
+    tmux.run_command('undercloud', "ssh stack@{}".format(ip))
+    tmux.run_command('undercloud', "stack")
+    tmux.run_command('undercloud', "git clone {}".format(UNDERCLOUD_REPO))
+    tmux.run_command('undercloud', "source instack-undercloud/instack-sourcerc")
+    tmux.run_command('undercloud', "export PACKAGES=0")
+    tmux.run_command('undercloud', "instack-install-undercloud-source")
+    tmux.run_command('undercloud', "sudo cp /root/tripleo-undercloud-passwords ~/")
+    tmux.run_command('undercloud', "sudo cp /root/stackrc ~/")
 
 
 def _undercloud_copy_images():
