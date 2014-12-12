@@ -136,6 +136,7 @@ def host_tmux_list():
 
 
 def host_tmux_buffer(session):
+    """Display the current buffer for a given tmux session"""
     _tmux_buffer(session)
 
 
