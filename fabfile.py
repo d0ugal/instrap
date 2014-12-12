@@ -49,7 +49,7 @@ def _host_setup():
 def _host_download_images():
     # step 7 prep (Start early)
     sudo("mkdir -p ~/images", user='stack')
-    _tmux_create("image-download")
+    _tmux_create("image-dl")
     _tmux('image-download', 'cd ~/images')
     for f in IMAGES:
         _tmux('image-download', "wget {}".format(f))
@@ -77,7 +77,7 @@ def _host_initial_setup():
     # Step 2 & 3
 
     sudo("mkdir -p ~/instack", user='stack')
-    _tmux_create("tripleo-setup")
+    _tmux_create("tripleo")
     _tmux('tripleo-setup', 'cd ~/instack')
     _tmux('tripleo-setup', "git clone {}".format(UNDERCLOUD_REPO))
     _tmux('tripleo-setup', "git clone {}".format(TRIPLEO_REPO))
@@ -191,7 +191,8 @@ def _undercloud_copy_images():
     if not ip:
         return
 
-    sudo("sshpass -p 'stack' scp ~/images/* stack@{}:".format(ip),
+    sudo(("sshpass -p 'stack' "
+          "scp -oStrictHostKeyChecking=no ~/images/* stack@{}:").format(ip),
          user='stack')
 
 
