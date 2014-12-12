@@ -40,6 +40,10 @@ def _tmux(session, command):
     return sudo(send, user="stack")
 
 
+def _tmux_buffer(session):
+    sudo("tmux capture-pane -p -t {0}".format(session), user="stack")
+
+
 def _host_setup():
     # Step 0
     sudo('yum upgrade -q -y')
@@ -50,9 +54,9 @@ def _host_download_images():
     # step 7 prep (Start early)
     sudo("mkdir -p ~/images", user='stack')
     _tmux_create("image-dl")
-    _tmux('image-download', 'cd ~/images')
+    _tmux('image-dl', 'cd ~/images')
     for f in IMAGES:
-        _tmux('image-download', "wget {}".format(f))
+        _tmux('image-dl', "wget {}".format(f))
 
 
 def _host_create_user():
@@ -78,13 +82,13 @@ def _host_initial_setup():
 
     sudo("mkdir -p ~/instack", user='stack')
     _tmux_create("tripleo")
-    _tmux('tripleo-setup', 'cd ~/instack')
-    _tmux('tripleo-setup', "git clone {}".format(UNDERCLOUD_REPO))
-    _tmux('tripleo-setup', "git clone {}".format(TRIPLEO_REPO))
+    _tmux('tripleo', 'cd ~/instack')
+    _tmux('tripleo', "git clone {}".format(UNDERCLOUD_REPO))
+    _tmux('tripleo', "git clone {}".format(TRIPLEO_REPO))
 
-    _tmux('tripleo-setup', "source {}".format(SOURCERC))
-    _tmux('tripleo-setup', "tripleo install-dependencies")
-    _tmux('tripleo-setup', "tripleo set-usergroup-membership")
+    _tmux('tripleo', "source {}".format(SOURCERC))
+    _tmux('tripleo', "tripleo install-dependencies")
+    _tmux('tripleo', "tripleo set-usergroup-membership")
 
 
 def undercloud_ip():
@@ -129,6 +133,10 @@ def host_virsh_list():
 def host_tmux_list():
     """Display the active tmux sessions"""
     sudo("tmux ls", user="stack")
+
+
+def host_tmux_buffer(session):
+    _tmux_buffer(session)
 
 
 def host_list_images():
