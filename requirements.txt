@@ -1,2 +1,3 @@
 Fabric
 MkDocs
+flake8

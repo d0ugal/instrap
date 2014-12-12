@@ -6,7 +6,7 @@ def create_session(name):
     sudo("tmux new -d -s {}".format(name), user="stack", warn_only=True)
 
 
-def run_command(session, command):
+def run(session, command):
     send = "tmux send -t {0}.0 '{1}' ENTER".format(session, command)
     return sudo(send, user="stack")
 
