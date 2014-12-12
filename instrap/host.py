@@ -4,13 +4,13 @@ from fabric.api import task, sudo, settings
 from instrap import tmux, config
 
 
-def host_setup():
+def yum():
     # Step 0
     sudo('yum upgrade -q -y')
     sudo('yum install -q -y git tmux sshpass')
 
 
-def host_download_images():
+def download_images():
     # step 7 prep (Start early)
     sudo("mkdir -p ~/images", user='stack')
     tmux.create_session("image-dl")
@@ -19,7 +19,7 @@ def host_download_images():
         tmux.run('image-dl', "wget {}".format(f))
 
 
-def host_create_user():
+def create_user():
     # Step 1
     result = sudo('useradd stack', warn_only=True)
 
@@ -37,7 +37,7 @@ def host_create_user():
              ">> ~/.bashrc")
 
 
-def host_initial_setup():
+def tripleo_setup():
     # Step 2 & 3
 
     sudo("mkdir -p ~/instack", user='stack')
@@ -45,7 +45,6 @@ def host_initial_setup():
     tmux.run('tripleo', 'cd ~/instack')
     tmux.run('tripleo', "git clone {}".format(config.UNDERCLOUD_REPO))
     tmux.run('tripleo', "git clone {}".format(config.TRIPLEO_REPO))
-
     tmux.run('tripleo', "source {}".format(config.SOURCERC))
     tmux.run('tripleo', "tripleo install-dependencies")
     tmux.run('tripleo', "tripleo set-usergroup-membership")
@@ -55,16 +54,16 @@ def host_initial_setup():
 def setup():
     """Setup the host. Create user, download images, tripleo setup"""
     # Step 0
-    host_setup()
+    yum()
 
     # Step 1
-    host_create_user()
+    create_user()
 
     # step 7 prep (Start early)
-    host_download_images()
+    download_images()
 
     # Step 2 & 3
-    host_initial_setup()
+    tripleo_setup()
 
 
 @task
