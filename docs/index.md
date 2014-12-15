@@ -54,20 +54,9 @@ Create the instack virt setup, this essentially just calls the
 instack command `instack-virt-setup` in a tmux session named
 `instack`.
 
-
-### 3. fab -H $HOST undercloud.setup
-
-Before running this command, step 2 needs to have finished. To
-verify this you can use the host.tmux_buffer utility command with
-`fab -H $HOST host.tmux_buffer:instack`. When it has finished, you
-should see a line like this near the end of the output.
-
-
-    instack vm IP address is 192.168.122.53
-
-If that all looks good, then go ahead and run the command. To
-view the process connect to the host and attach to the tmux
-session named `undercloud`
+It will then ssh into the undercloud when it is created and
+finish the setup. This happens in the tmux session named
+`undercloud`.
 
 
 ## Utility Commands

@@ -67,6 +67,7 @@ def create():
     tmux.run('instack', 'cd ~/instack')
     tmux.run('instack', "source {}".format(config.SOURCERC))
     tmux.run('instack', "instack-virt-setup")
+    setup()
 
 
 @task
@@ -87,7 +88,6 @@ def destroy():
         sudo("virsh undefine {}".format(name), user="stack")
 
 
-@task
 def setup():
     """Copy the images to the undercloud and start a SSH session"""
 
