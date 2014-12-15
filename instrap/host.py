@@ -1,5 +1,6 @@
-from fabric.api import task, sudo, settings
+from __future__ import print_function
 
+from fabric.api import task, sudo, settings
 
 from instrap import tmux, config
 

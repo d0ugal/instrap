@@ -1,9 +1,13 @@
+from __future__ import print_function
+
+from time import sleep
+
 from fabric.api import task, sudo, cd
 
 from instrap import tmux, config
 
 
-@task
+@task(alias='ip')
 def get_ip():
     """Output the IP address of the undercloud if it has been created"""
 
@@ -38,8 +42,6 @@ def _undercloud_ssh():
     tmux.run('undercloud', "source instack-undercloud/instack-sourcerc")
     tmux.run('undercloud', "export PACKAGES=0")
     tmux.run('undercloud', "instack-install-undercloud-source")
-    tmux.run('undercloud', "sudo cp /root/tripleo-undercloud-passwords ~/")
-    tmux.run('undercloud', "sudo cp /root/stackrc ~/")
 
 
 def _undercloud_copy_images():
@@ -88,6 +90,12 @@ def destroy():
 @task
 def setup():
     """Copy the images to the undercloud and start a SSH session"""
+
+    ip = None
+    while ip is None:
+        ip = get_ip()
+        sleep(30)
+
     # step 7
     _undercloud_copy_images()
     # step 6 & 8
