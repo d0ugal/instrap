@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+from time import sleep
+
 from fabric.api import task, sudo, settings
 
 from instrap import tmux, config
@@ -51,8 +53,12 @@ def tripleo_setup():
     tmux.run('tripleo', "tripleo set-usergroup-membership")
 
 
+def user_membership():
+    return 'libvirtd' in sudo('id', user='stack')
+
+
 @task
-def setup():
+def setup(block=False):
     """Setup the host. Create user, download images, tripleo setup"""
     # Step 0
     yum()
@@ -65,6 +71,11 @@ def setup():
 
     # Step 2 & 3
     tripleo_setup()
+
+    if block:
+        while not user_membership:
+            print("Waiting for user membership")
+            sleep(30)
 
 
 @task

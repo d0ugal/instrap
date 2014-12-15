@@ -7,8 +7,8 @@ from fabric.api import task, sudo, cd
 from instrap import tmux, config
 
 
-@task(alias='ip')
-def get_ip():
+@task
+def ip():
     """Output the IP address of the undercloud if it has been created"""
 
     with cd("~/instack"):
@@ -19,41 +19,43 @@ def get_ip():
         print("Undercloud not found.")
         return
 
-    ip = sudo(("cat /var/lib/libvirt/dnsmasq/default.leases "
-               "| grep {} | awk '{{print $3;}}'").format(mac), user='stack')
+    undercloud_ip = sudo(("cat /var/lib/libvirt/dnsmasq/default.leases "
+                          "| grep {} | awk '{{print $3;}}'").format(mac),
+                         user='stack')
 
     print("Undercloud IP", ip)
 
-    return ip
+    return undercloud_ip
 
 
 def _undercloud_ssh():
     # step 6
 
-    ip = get_ip()
+    undercloud_ip = ip()
 
-    if not ip:
+    if not undercloud_ip:
         return
 
     tmux.create_session("undercloud")
-    tmux.run('undercloud', "ssh stack@{}".format(ip))
+    tmux.run('undercloud', "ssh stack@{}".format(undercloud_ip))
     tmux.run('undercloud', "stack")
     tmux.run('undercloud', "git clone {}".format(config.UNDERCLOUD_REPO))
     tmux.run('undercloud', "source instack-undercloud/instack-sourcerc")
-    tmux.run('undercloud', "export PACKAGES=0")
+    tmux.run('undercloud', "export DIB_INSTALLTYPE_python_tuskarclient=source")
     tmux.run('undercloud', "instack-install-undercloud-source")
 
 
 def _undercloud_copy_images():
     # step 7
 
-    ip = get_ip()
+    undercloud_ip = ip()
 
-    if not ip:
+    if not undercloud_ip:
         return
 
     sudo(("sshpass -p 'stack' "
-          "scp -oStrictHostKeyChecking=no ~/images/* stack@{}:").format(ip),
+          "scp -oStrictHostKeyChecking=no ~/images/* "
+          "stack@{}:").format(undercloud_ip),
          user='stack')
 
 
@@ -91,9 +93,9 @@ def destroy():
 def setup():
     """Copy the images to the undercloud and start a SSH session"""
 
-    ip = None
-    while ip is None:
-        ip = get_ip()
+    undercloud_ip = None
+    while undercloud_ip is None:
+        undercloud_ip = ip()
         sleep(30)
 
     # step 7
