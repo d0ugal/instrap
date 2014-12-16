@@ -4,6 +4,7 @@ from time import sleep
 from urllib2 import urlopen
 
 from fabric.api import task, sudo, settings
+from fabric.context_managers import hide
 
 from instrap import tmux, config
 
@@ -33,14 +34,15 @@ def are_images_downloaded():
 
     for image in config.IMAGES:
         name = image.rsplit('/', 1)[-1].strip()
-        sha = sudo("openssl dgst -sha256 ~/images/{}".format(name),
-                   user='stack')[-64:]
-        if name not in d:
-            print("Missing image: %r" % name)
-            return False
-        if d[name] != sha:
-            print("SHA mismatch for {}.".format(name))
-            return False
+        with hide('running', 'stdout'):
+            sha = sudo("openssl dgst -sha256 ~/images/{}".format(name),
+                       user='stack')[-64:]
+            if name not in d:
+                print("Missing image: %r" % name)
+                return False
+            if d[name] != sha:
+                print("SHA mismatch: {}.".format(name))
+                return False
 
     print("Images downloaded")
     return True
@@ -78,9 +80,10 @@ def tripleo_setup():
 
 
 def user_membership():
-    membership = 'libvirtd' in sudo('id', user='stack')
-    print("Stack user in libvirtd", membership)
-    return membership
+    with hide('running', 'stdout'):
+        membership = 'libvirtd' in sudo('id', user='stack')
+        print("Stack user in libvirtd", membership)
+        return membership
 
 
 @task
