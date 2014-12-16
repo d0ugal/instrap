@@ -41,7 +41,8 @@ def are_images_downloaded():
                 print("Missing image: %r" % name)
                 return False
             if d[name] != sha:
-                print("SHA mismatch: {}.".format(name))
+                print("SHA mismatch: {}. (probably still downloading)"
+                      .format(name))
                 return False
 
     print("Images downloaded")
@@ -102,7 +103,13 @@ def setup(block=False):
     tripleo_setup()
 
     if block:
-        while not user_membership() or not are_images_downloaded():
+        user_in_libvirtd = False
+        images_downloaded = False
+        while not user_in_libvirtd or not images_downloaded:
+            if not user_in_libvirtd:
+                user_in_libvirtd = user_membership()
+            if not images_downloaded:
+                images_downloaded = are_images_downloaded()
             sleep(60)
 
 
