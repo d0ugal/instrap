@@ -3,6 +3,7 @@ from __future__ import print_function
 from time import sleep
 
 from fabric.api import task, sudo, cd
+from fabric.context_managers import hide
 
 from instrap import tmux, config
 
@@ -11,19 +12,20 @@ from instrap import tmux, config
 def ip():
     """Output the IP address of the undercloud if it has been created"""
 
-    with cd("~/instack"):
-        mac = sudo("source {} && tripleo get-vm-mac instack".format(
-            config.SOURCERC), user='stack')
+    with hide('running', 'stdout'):
+        with cd("~/instack"):
+            mac = sudo("source {} && tripleo get-vm-mac instack".format(
+                config.SOURCERC), user='stack')
 
-    if not mac:
-        print("Undercloud not found.")
-        return
+        if not mac:
+            print("Undercloud not found.")
+            return
 
-    undercloud_ip = sudo(("cat /var/lib/libvirt/dnsmasq/default.leases "
-                          "| grep {} | awk '{{print $3;}}'").format(mac),
-                         user='stack')
+        undercloud_ip = sudo(("cat /var/lib/libvirt/dnsmasq/default.leases "
+                              "| grep {} | awk '{{print $3;}}'").format(mac),
+                             user='stack')
 
-    print("Undercloud IP", ip)
+    print("Undercloud IP", undercloud_ip)
 
     return undercloud_ip
 
@@ -102,6 +104,7 @@ def setup():
 
     undercloud_ip = None
     while undercloud_ip is None:
+        print("Waiting for undercloud...")
         undercloud_ip = ip()
         sleep(30)
 

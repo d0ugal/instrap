@@ -16,6 +16,10 @@ def yum():
 
 
 def download_images():
+
+    if are_images_downloaded():
+        return
+
     # step 7 prep (Start early)
     sudo("rm -rf ~/images", user='stack')
     sudo("mkdir -p ~/images", user='stack')
@@ -70,6 +74,9 @@ def create_user():
 def tripleo_setup():
     # Step 2 & 3
 
+    if user_membership():
+        return
+
     sudo("mkdir -p ~/instack", user='stack')
     tmux.create_session("tripleo")
     tmux.run('tripleo', 'cd ~/instack')
@@ -104,14 +111,15 @@ def setup(block=False):
     tripleo_setup()
 
     if block:
+        print("Waiting for tripleo setup and images to download.")
         user_in_libvirtd = False
         images_downloaded = False
         while not user_in_libvirtd or not images_downloaded:
+            sleep(60)
             if not user_in_libvirtd:
                 user_in_libvirtd = user_membership()
             if not images_downloaded:
                 images_downloaded = are_images_downloaded()
-            sleep(60)
 
 
 @task
