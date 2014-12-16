@@ -30,7 +30,7 @@ def ip():
     return undercloud_ip
 
 
-def _undercloud_ssh():
+def undercloud_ssh():
     # step 6
 
     undercloud_ip = ip()
@@ -47,13 +47,15 @@ def _undercloud_ssh():
     tmux.run('undercloud', "instack-install-undercloud-source")
 
 
-def _undercloud_copy_images():
+def undercloud_copy_images():
     # step 7
 
     undercloud_ip = ip()
 
     if not undercloud_ip:
         return
+
+    print("Copying images to the instack VM")
 
     sudo(("sshpass -p 'stack' "
           "scp -oStrictHostKeyChecking=no ~/images/* "
@@ -104,11 +106,11 @@ def setup():
 
     undercloud_ip = None
     while undercloud_ip is None:
+        sleep(60)
         print("Waiting for undercloud...")
         undercloud_ip = ip()
-        sleep(30)
 
     # step 7
-    _undercloud_copy_images()
+    undercloud_copy_images()
     # step 6 & 8
-    _undercloud_ssh()
+    undercloud_ssh()

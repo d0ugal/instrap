@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 USER = 'root'
 
 UNDERCLOUD_REPO = "https://github.com/agroup/instack-undercloud.git"
@@ -28,6 +30,7 @@ IMAGES = [
 ]
 
 try:
-    from .local_config import *
+    from instrap.local_config import *
+    print("Local config loaded")
 except ImportError:
     pass
