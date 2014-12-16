@@ -1,6 +1,7 @@
 USER = 'root'
 
 UNDERCLOUD_REPO = "https://github.com/agroup/instack-undercloud.git"
+UNDERCLOUD_BRANCH = "master"
 TRIPLEO_REPO = "https://git.openstack.org/openstack/tripleo-incubator"
 SOURCERC = "instack-undercloud/instack-sourcerc"
 
@@ -25,3 +26,8 @@ IMAGES = [
     'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-swift-storage.qcow2',  # NOQA
     'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/overcloud-swift-storage.vmlinuz ',  # NOQA
 ]
+
+try:
+    from .local_config import *
+except ImportError:
+    pass

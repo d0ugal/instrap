@@ -39,7 +39,8 @@ def _undercloud_ssh():
     tmux.create_session("undercloud")
     tmux.run('undercloud', "ssh stack@{}".format(undercloud_ip))
     tmux.run('undercloud', "stack")
-    tmux.run('undercloud', "git clone {}".format(config.UNDERCLOUD_REPO))
+    tmux.run('undercloud', "git clone {} --branch={}".format(
+        config.UNDERCLOUD_REPO, config.UNDERCLOUD_BRANCH))
     tmux.run('undercloud', "source instack-undercloud/instack-sourcerc")
     tmux.run('undercloud', "instack-install-undercloud-source")
 

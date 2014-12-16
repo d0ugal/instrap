@@ -73,7 +73,8 @@ def tripleo_setup():
     sudo("mkdir -p ~/instack", user='stack')
     tmux.create_session("tripleo")
     tmux.run('tripleo', 'cd ~/instack')
-    tmux.run('tripleo', "git clone {}".format(config.UNDERCLOUD_REPO))
+    tmux.run('tripleo', "git clone {} --branch={}".format(
+        config.UNDERCLOUD_REPO, config.UNDERCLOUD_BRANCH))
     tmux.run('tripleo', "git clone {}".format(config.TRIPLEO_REPO))
     tmux.run('tripleo', "source {}".format(config.SOURCERC))
     tmux.run('tripleo', "tripleo install-dependencies")

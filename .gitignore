@@ -1,2 +1,3 @@
 .tox/
 *.pyc
+instrap/local_config.py
