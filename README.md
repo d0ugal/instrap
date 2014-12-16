@@ -9,3 +9,9 @@ details. Or, just go for the quick start approach.
     cd instrap
     pip install -r requirements.txt
     fab -H $HOST full
+
+Another handy function, to re-create the undercloud.
+
+    fab -H $HOST undercloud.recreate
+
+View `fab -l` to see the other commands.

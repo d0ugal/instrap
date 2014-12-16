@@ -41,7 +41,6 @@ def _undercloud_ssh():
     tmux.run('undercloud', "stack")
     tmux.run('undercloud', "git clone {}".format(config.UNDERCLOUD_REPO))
     tmux.run('undercloud', "source instack-undercloud/instack-sourcerc")
-    tmux.run('undercloud', "export DIB_INSTALLTYPE_python_tuskarclient=source")
     tmux.run('undercloud', "instack-install-undercloud-source")
 
 
