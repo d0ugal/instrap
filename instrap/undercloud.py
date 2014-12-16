@@ -90,6 +90,13 @@ def destroy():
         sudo("virsh undefine {}".format(name), user="stack")
 
 
+@task
+def recreate():
+    """A simple helper which calls undercloud.destroy and undercloud.create"""
+    destroy()
+    create()
+
+
 def setup():
     """Copy the images to the undercloud and start a SSH session"""
 

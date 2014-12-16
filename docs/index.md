@@ -31,6 +31,15 @@ The commands are explained below in some detail in a suggested
 install flow.
 
 
+## All In One
+
+After cloning and installing with the above steps, you should be
+able to run the following command and it will setup the host and
+undercloud all in one go.
+
+    fab -H $HOST full
+
+
 ## Running Instrap
 
 To setup instack with Instrap, the commands need to be run in a
@@ -60,7 +69,6 @@ finish the setup. This happens in the tmux session named
 
 
 ## Utility Commands
-
 
 ### fab -H $HOST host.list_images
 

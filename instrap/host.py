@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 from time import sleep
+from urllib2 import urlopen
 
 from fabric.api import task, sudo, settings
 
@@ -15,11 +16,34 @@ def yum():
 
 def download_images():
     # step 7 prep (Start early)
+    sudo("rm -rf ~/images", user='stack')
     sudo("mkdir -p ~/images", user='stack')
     tmux.create_session("image-dl")
     tmux.run('image-dl', 'cd ~/images')
+    tmux.run('image-dl', "wget {}".format(config.IMAGES_SHAS))
     for f in config.IMAGES:
         tmux.run('image-dl', "wget {}".format(f))
+
+
+def are_images_downloaded():
+    response = urlopen(config.IMAGES_SHAS)
+    text = [l.strip() for l in response.readlines()]
+
+    d = {p.split('  ')[1]: p.split('  ')[0] for p in text}
+
+    for image in config.IMAGES:
+        name = image.rsplit('/', 1)[-1].strip()
+        sha = sudo("openssl dgst -sha256 ~/images/{}".format(name),
+                   user='stack')[-64:]
+        if name not in d:
+            print("Missing image: %r" % name)
+            return False
+        if d[name] != sha:
+            print("SHA mismatch for {}.".format(name))
+            return False
+
+    print("Images downloaded")
+    return True
 
 
 def create_user():
@@ -54,7 +78,9 @@ def tripleo_setup():
 
 
 def user_membership():
-    return 'libvirtd' in sudo('id', user='stack')
+    membership = 'libvirtd' in sudo('id', user='stack')
+    print("Stack user in libvirtd", membership)
+    return membership
 
 
 @task
@@ -73,9 +99,8 @@ def setup(block=False):
     tripleo_setup()
 
     if block:
-        while not user_membership:
-            print("Waiting for user membership")
-            sleep(30)
+        while not user_membership() or not are_images_downloaded():
+            sleep(60)
 
 
 @task

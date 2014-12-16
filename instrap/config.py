@@ -4,8 +4,9 @@ UNDERCLOUD_REPO = "https://github.com/d0ugal/instack-undercloud.git"
 TRIPLEO_REPO = "https://git.openstack.org/openstack/tripleo-incubator"
 SOURCERC = "instack-undercloud/instack-sourcerc"
 
+IMAGES_SHAS = 'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/SHA256SUMS'  # NOQA
+
 IMAGES = [
-    'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/SHA256SUMS',  # NOQA
     'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/deploy-ramdisk-ironic.initramfs',  # NOQA
     'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/deploy-ramdisk-ironic.kernel',  # NOQA
     'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/discovery-ramdisk.initramfs',  # NOQA
