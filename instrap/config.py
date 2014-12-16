@@ -1,6 +1,6 @@
 USER = 'root'
 
-UNDERCLOUD_REPO = "https://github.com/d0ugal/instack-undercloud.git"
+UNDERCLOUD_REPO = "https://github.com/agroup/instack-undercloud.git"
 TRIPLEO_REPO = "https://git.openstack.org/openstack/tripleo-incubator"
 SOURCERC = "instack-undercloud/instack-sourcerc"
 
