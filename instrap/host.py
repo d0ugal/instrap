@@ -17,13 +17,16 @@ def yum():
 
 def download_images():
 
-    if are_images_downloaded():
-        return
+    try:
+        if are_images_downloaded():
+            return True
+    except Exception:
+        pass
 
     # step 7 prep (Start early)
+    tmux.create_session("image-dl")
     sudo("rm -rf ~/images", user='stack')
     sudo("mkdir -p ~/images", user='stack')
-    tmux.create_session("image-dl")
     tmux.run('image-dl', 'cd ~/images')
     tmux.run('image-dl', "wget {}".format(config.IMAGES_SHAS))
     for f in config.IMAGES:
@@ -31,6 +34,8 @@ def download_images():
 
 
 def are_images_downloaded():
+
+    print("Checking for images...")
     response = urlopen(config.IMAGES_SHAS)
     text = [l.strip() for l in response.readlines()]
 
@@ -75,7 +80,7 @@ def tripleo_setup():
     # Step 2 & 3
 
     if user_membership():
-        return
+        return True
 
     sudo("mkdir -p ~/instack", user='stack')
     tmux.create_session("tripleo")
@@ -105,15 +110,13 @@ def setup(block=False):
     create_user()
 
     # step 7 prep (Start early)
-    download_images()
+    images_downloaded = download_images()
 
     # Step 2 & 3
-    tripleo_setup()
+    user_in_libvirtd = tripleo_setup()
 
     if block:
         print("Waiting for tripleo setup and images to download.")
-        user_in_libvirtd = False
-        images_downloaded = False
         while not user_in_libvirtd or not images_downloaded:
             sleep(60)
             if not user_in_libvirtd:
