@@ -12,4 +12,4 @@ def run(session, command):
 
 
 def get_buffer(session):
-    sudo("tmux capture-pane -p -t {0}".format(session), user="stack")
+    sudo("tmux capture-pane -p -t {0} -S -1000".format(session), user="stack")
