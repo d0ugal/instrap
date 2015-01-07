@@ -45,7 +45,7 @@ def are_images_downloaded():
         name = image.rsplit('/', 1)[-1].strip()
         with hide('running', 'stdout'):
             sha = sudo("openssl dgst -sha256 ~/images/{}".format(name),
-                       user='stack')[-64:]
+                       user='stack', warn_only=True)[-64:]
             if name not in d:
                 print("Missing image: %r" % name)
                 return False

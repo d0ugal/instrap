@@ -25,7 +25,7 @@ def ip():
                               "| grep {} | awk '{{print $3;}}'").format(mac),
                              user='stack')
 
-    print("Undercloud IP", undercloud_ip)
+    print("Undercloud IP", repr(undercloud_ip))
 
     return undercloud_ip
 
