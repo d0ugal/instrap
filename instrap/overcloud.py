@@ -7,7 +7,7 @@ from instrap import tmux, undercloud
 
 def _create_update(update, control, compute, blockstorage, swiftstorage):
 
-    if update:
+    if not update:
 
         undercloud_ip = undercloud.ip()
 
