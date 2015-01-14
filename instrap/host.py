@@ -19,7 +19,7 @@ def download_images():
 
     try:
         if are_images_downloaded():
-            return True
+            return
     except Exception as e:
         print(e)
         pass
@@ -51,8 +51,8 @@ def are_images_downloaded():
                 print("Missing image: %r" % name)
                 return False
             if d[name] != sha:
-                print("{0} - probably still downloading ({1} != {2})"
-                      .format(name. d[name], sha))
+                print("{0} is probably still downloading (SHA {1} != {2})"
+                      .format(name, d[name][:7], sha[:7]))
                 return False
 
     print("Images downloaded")

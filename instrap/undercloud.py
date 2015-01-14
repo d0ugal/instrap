@@ -101,14 +101,24 @@ def recreate():
     create()
 
 
+@task
 def setup():
     """Copy the images to the undercloud and start a SSH session"""
 
-    undercloud_ip = None
-    while undercloud_ip is None:
-        sleep(60)
+    undercloud_ip = ip()
+    while undercloud_ip is None or undercloud_ip == '':
         print("Waiting for undercloud...")
+        sleep(30)
         undercloud_ip = ip()
+
+    # TODO: Remove this hack. Currently the stack user is created
+    # without a password, we can correct as root and fix this.
+    tmux.create_session("undercloud_pw_fix")
+    tmux.run('undercloud_pw_fix',
+             "ssh -oStrictHostKeyChecking=no root@{}".format(undercloud_ip))
+    tmux.run('undercloud_pw_fix', "passwd stack")
+    tmux.run('undercloud_pw_fix', "stack")
+    tmux.run('undercloud_pw_fix', "stack")
 
     # step 7
     undercloud_copy_images()
