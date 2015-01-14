@@ -1,6 +1,6 @@
 from fabric.api import env, task
 
-from instrap import config, host, undercloud  # NOQA
+from instrap import config, host, undercloud, overcloud  # NOQA
 
 env.user = config.USER
 
@@ -10,3 +10,6 @@ def full():
     """All in one. Setup the host and then undercloud."""
     host.setup(block=True)
     undercloud.create()
+
+    return
+    overcloud.install()

@@ -1,8 +1,13 @@
 from fabric.api import sudo
 
 
-def create_session(name):
+def kill_session(name):
     sudo("tmux kill-session -t {}".format(name), user="stack", warn_only=True)
+
+
+def create_session(name, kill=True):
+    if kill:
+        kill_session(name)
     sudo("tmux new -d -s {}".format(name), user="stack", warn_only=True)
 
 

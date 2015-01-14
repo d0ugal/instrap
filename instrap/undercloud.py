@@ -69,10 +69,10 @@ def create():
     """Create and start virtual environment for instack"""
     # step 4 & 5
 
-    tmux.create_session("instack")
-    tmux.run('instack', 'sudo su - stack')
-    tmux.run('instack', "source {}".format(config.SOURCERC))
-    tmux.run('instack', "instack-virt-setup")
+    tmux.create_session("instack-virt")
+    tmux.run('instack-virt', 'sudo su - stack')
+    tmux.run('instack-virt', "source {}".format(config.SOURCERC))
+    tmux.run('instack-virt', "instack-virt-setup")
     setup()
 
 
@@ -124,3 +124,5 @@ def setup():
     undercloud_copy_images()
     # step 6 & 8
     undercloud_setup()
+
+    tmux.kill_session('undercloud_pw_fix')
