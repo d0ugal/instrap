@@ -12,7 +12,7 @@ from instrap import tmux, config
 def ip():
     """Output the IP address of the undercloud if it has been created"""
 
-    with hide('running', 'stdout'):
+    with hide('running'):
         with cd("~/instack"):
             mac = sudo("source {} && tripleo get-vm-mac instack".format(
                 config.SOURCERC), user='stack')
@@ -30,7 +30,7 @@ def ip():
     return undercloud_ip
 
 
-def undercloud_ssh():
+def undercloud_setup():
     # step 6
 
     undercloud_ip = ip()
@@ -41,10 +41,11 @@ def undercloud_ssh():
     tmux.create_session("undercloud")
     tmux.run('undercloud', "ssh stack@{}".format(undercloud_ip))
     tmux.run('undercloud', "stack")
-    tmux.run('undercloud', "git clone {} --branch={}".format(
-        config.UNDERCLOUD_REPO, config.UNDERCLOUD_BRANCH))
-    tmux.run('undercloud', "source instack-undercloud/instack-sourcerc")
-    tmux.run('undercloud', "instack-install-undercloud-source")
+    tmux.run('undercloud', "sudo curl -o /etc/yum.repos.d/slagle-openstack-m.repo https://copr.fedoraproject.org/coprs/slagle/openstack-m/repo/fedora-20/slagle-openstack-m-fedora-20.repo")  # NOQA
+    tmux.run('undercloud', "sudo yum -y install https://repos.fedorapeople.org/repos/openstack/openstack-juno/rdo-release-juno-1.noarch.rpm")  # NOQA
+    tmux.run('undercloud', "sudo sed -i 's#repos.fedorapeople.org/repos#rdo-stage.virt.bos.redhat.com#' /etc/yum.repos.d/rdo-release.repo")  # NOQA
+    tmux.run('undercloud', "sudo yum -y install instack-undercloud")
+    tmux.run('undercloud', "instack-install-undercloud")
 
 
 def undercloud_copy_images():
@@ -70,7 +71,6 @@ def create():
 
     tmux.create_session("instack")
     tmux.run('instack', 'sudo su - stack')
-    tmux.run('instack', 'cd ~/instack')
     tmux.run('instack', "source {}".format(config.SOURCERC))
     tmux.run('instack', "instack-virt-setup")
     setup()
@@ -113,4 +113,4 @@ def setup():
     # step 7
     undercloud_copy_images()
     # step 6 & 8
-    undercloud_ssh()
+    undercloud_setup()

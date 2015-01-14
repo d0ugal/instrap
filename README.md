@@ -1,6 +1,6 @@
 # Instrap
 
-Bootstrap a source based instack installation.
+Bootstrap a package based instack undercloud.
 
 See [the documentation](http://instrap.rtfd.org) for further
 details. Or, just go for the quick start approach.

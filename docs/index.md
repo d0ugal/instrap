@@ -1,13 +1,13 @@
 # Instrap - Bootstrapping Instack.
 
 Instrap is a set of utilities for automating the manual steps
-required to set up an instack installation via source with
+required to set up an instack installation via packages with
 Tuskar.
 
 This means we will automate the steps described on:
 
-- [instack-undercloud via source](https://github.com/agroup
-  /instack-undercloud/blob/master/README-source.md)
+- [instack-undercloud via packages](https://github.com/agroup
+  /instack-undercloud/blob/master/README-packages.md)
 - [Using Tuskar and Tuskar UI with
   instack](https://wiki.openstack.org/wiki/Tuskar/Instack)
 

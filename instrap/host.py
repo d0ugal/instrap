@@ -12,7 +12,7 @@ from instrap import tmux, config
 def yum():
     # Step 0
     sudo('yum upgrade -q -y')
-    sudo('yum install -q -y git tmux sshpass')
+    sudo('yum install -q -y tmux sshpass')
 
 
 def download_images():
@@ -20,7 +20,8 @@ def download_images():
     try:
         if are_images_downloaded():
             return True
-    except Exception:
+    except Exception as e:
+        print(e)
         pass
 
     # step 7 prep (Start early)
@@ -50,8 +51,8 @@ def are_images_downloaded():
                 print("Missing image: %r" % name)
                 return False
             if d[name] != sha:
-                print("SHA mismatch: {}. (probably still downloading)"
-                      .format(name))
+                print("{0} - probably still downloading ({1} != {2})"
+                      .format(name. d[name], sha))
                 return False
 
     print("Images downloaded")
@@ -84,10 +85,9 @@ def tripleo_setup():
 
     sudo("mkdir -p ~/instack", user='stack')
     tmux.create_session("tripleo")
-    tmux.run('tripleo', 'cd ~/instack')
-    tmux.run('tripleo', "git clone {} --branch={}".format(
-        config.UNDERCLOUD_REPO, config.UNDERCLOUD_BRANCH))
-    tmux.run('tripleo', "git clone {}".format(config.TRIPLEO_REPO))
+    tmux.run('tripleo', "sudo curl -o /etc/yum.repos.d/slagle-openstack-m.repo https://copr.fedoraproject.org/coprs/slagle/openstack-m/repo/fedora-20/slagle-openstack-m-fedora-20.repo")  # NOQA
+    tmux.run('tripleo', "sudo sed -i 's#repos.fedorapeople.org/repos#rdo-stage.virt.bos.redhat.com#' /etc/yum.repos.d/rdo-release.repo")  # NOQA
+    tmux.run('tripleo', "sudo yum -y install instack-undercloud")
     tmux.run('tripleo', "source {}".format(config.SOURCERC))
     tmux.run('tripleo', "tripleo install-dependencies")
     tmux.run('tripleo', "tripleo set-usergroup-membership")

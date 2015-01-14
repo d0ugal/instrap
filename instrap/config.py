@@ -2,10 +2,7 @@ from __future__ import print_function
 
 USER = 'root'
 
-UNDERCLOUD_REPO = "https://github.com/agroup/instack-undercloud.git"
-UNDERCLOUD_BRANCH = "master"
-TRIPLEO_REPO = "https://git.openstack.org/openstack/tripleo-incubator"
-SOURCERC = "instack-undercloud/instack-sourcerc"
+SOURCERC = "/usr/libexec/openstack-tripleo/devtest_variables.sh"
 
 IMAGES_SHAS = 'http://file.rdu.redhat.com/~jslagle/tripleo-images-juno-source/SHA256SUMS'  # NOQA
 
