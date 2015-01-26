@@ -25,6 +25,10 @@ def ip():
                               "| grep {} | awk '{{print $3;}}'").format(mac),
                              user='stack')
 
+        if not undercloud_ip:
+            print("Undercloud mac found, but no IP yet.")
+            return
+
     print("Undercloud IP", repr(undercloud_ip))
 
     return undercloud_ip

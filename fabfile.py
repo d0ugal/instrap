@@ -10,6 +10,3 @@ def full():
     """All in one. Setup the host and then undercloud."""
     host.setup(block=True)
     undercloud.create()
-
-    return
-    overcloud.install()

@@ -15,6 +15,7 @@ def yum():
     sudo('yum install -q -y tmux sshpass')
 
 
+@task
 def download_images():
 
     try:
