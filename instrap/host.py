@@ -12,7 +12,7 @@ from instrap import tmux, config
 def yum():
     # Step 0
     sudo('yum upgrade -q -y')
-    sudo('yum install -q -y tmux sshpass')
+    sudo('yum install -q -y tmux sshpass ack')
 
 
 @task
