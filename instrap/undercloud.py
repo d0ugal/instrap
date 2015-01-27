@@ -113,7 +113,6 @@ def recreate():
     create()
 
 
-@task
 def setup():
     """Copy the images to the undercloud and start a SSH session"""
 
