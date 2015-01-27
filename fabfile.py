@@ -10,3 +10,6 @@ def full():
     """All in one. Setup the host and then undercloud."""
     host.setup(block=True)
     undercloud.create()
+
+    print "We didn't do the overcloud, you need to trigger that"
+    print "when the undercloud is ready."
