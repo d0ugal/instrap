@@ -49,6 +49,14 @@ def undercloud_setup():
     tmux.run('undercloud', "sudo yum -y install https://repos.fedorapeople.org/repos/openstack/openstack-juno/rdo-release-juno-1.noarch.rpm")  # NOQA
     tmux.run('undercloud', "sudo sed -i 's#repos.fedorapeople.org/repos#rdo-stage.virt.bos.redhat.com#' /etc/yum.repos.d/rdo-release.repo")  # NOQA
     tmux.run('undercloud', "sudo yum -y install instack-undercloud")
+
+    # TODO: REMOVE THIS HACK WHEN THIS IS PAKAGED:
+    # https://github.com/agroup/instack-undercloud/pull/112
+    print("#" * 50)
+    print("Patching instack. This is horrible.")
+    tmux.run('undercloud', "sudo sed -i -e 's/--public//g' /usr/bin/instack-prepare-for-overcloud")  # NOQA
+    print("#" * 50)
+
     tmux.run('undercloud', "instack-install-undercloud")
 
 
