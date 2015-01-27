@@ -34,17 +34,21 @@ def ip():
     return undercloud_ip
 
 
-def undercloud_setup():
-    # step 6
-
+def _ssh_to_undercloud(session):
     undercloud_ip = ip()
 
     if not undercloud_ip:
         return
 
-    tmux.create_session("undercloud")
-    tmux.run('undercloud', "ssh stack@{}".format(undercloud_ip))
-    tmux.run('undercloud', "stack")
+    tmux.create_session(session)
+    tmux.run(session, "ssh stack@{}".format(undercloud_ip))
+    tmux.run(session, "stack")
+
+
+def undercloud_setup():
+    # step 6
+
+    _ssh_to_undercloud("undercloud")
     tmux.run('undercloud', "sudo curl -o /etc/yum.repos.d/slagle-openstack-m.repo https://copr.fedoraproject.org/coprs/slagle/openstack-m/repo/fedora-20/slagle-openstack-m-fedora-20.repo")  # NOQA
     tmux.run('undercloud', "sudo yum -y install https://repos.fedorapeople.org/repos/openstack/openstack-juno/rdo-release-juno-1.noarch.rpm")  # NOQA
     tmux.run('undercloud', "sudo sed -i 's#repos.fedorapeople.org/repos#rdo-stage.virt.bos.redhat.com#' /etc/yum.repos.d/rdo-release.repo")  # NOQA
@@ -137,3 +141,31 @@ def setup():
     undercloud_setup()
 
     tmux.kill_session('undercloud_pw_fix')
+
+
+@task
+def install_tuskar_from_review(changes_ref):
+
+    gerrit = 'https://review.openstack.org/openstack/python-tuskarclient'
+    _ssh_to_undercloud("tuskar-dev")
+    tmux.run('tuskar-dev', 'cd ~ && sudo rm -rf ~/python-tuskarclient')
+    tmux.run('tuskar-dev', 'git clone https://git.openstack.org/openstack/python-tuskarclient')  # NOQA
+    tmux.run('tuskar-dev', 'cd python-tuskarclient')
+    tmux.run('tuskar-dev', 'git fetch {0} {1}'.format(gerrit, changes_ref))
+    tmux.run('tuskar-dev', 'git checkout FETCH_HEAD')
+    tmux.run('tuskar-dev', 'sudo python setup.py install')
+
+
+@task
+def install_tuskar_from_master():
+
+    _ssh_to_undercloud("tuskar-master")
+    tmux.run('tuskar-master', 'cd ~ && sudo rm -rf ~/python-tuskarclient')
+    tmux.run('tuskar-master', 'git clone https://git.openstack.org/openstack/python-tuskarclient')  # NOQA
+    tmux.run('tuskar-master', 'cd python-tuskarclient')
+    tmux.run('tuskar-master', 'sudo python setup.py install')
+
+
+@task
+def start_ssh_session(name):
+    _ssh_to_undercloud("undercloud-{0}".fomrat(name))
