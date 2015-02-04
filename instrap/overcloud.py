@@ -57,8 +57,8 @@ def delete():
 
 @task
 def test():
-    _setup('overcloud-test')
-    tmux.run('overcloud-test', 'time instack-test-overcloud')
+    _setup('o-test')
+    tmux.run('o-test', 'time instack-test-overcloud')
 
 
 __all__ = ['deploy', 'update', 'delete', 'test']

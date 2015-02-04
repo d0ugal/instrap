@@ -14,6 +14,9 @@ def yum():
     sudo('yum upgrade -q -y')
     sudo('yum install -q -y tmux sshpass ack')
 
+_SESSION_IMAGE_DL = "h-image-dl"
+_SESSION_TRIPLEO = "h-tripleo-setup"
+
 
 @task
 def download_images():
@@ -26,13 +29,13 @@ def download_images():
         pass
 
     # step 7 prep (Start early)
-    tmux.create_session("image-dl")
+    tmux.create_session(_SESSION_IMAGE_DL)
     sudo("rm -rf ~/images", user='stack')
     sudo("mkdir -p ~/images", user='stack')
-    tmux.run('image-dl', 'cd ~/images')
-    tmux.run('image-dl', "wget {}".format(config.IMAGES_SHAS))
+    tmux.run(_SESSION_IMAGE_DL, 'cd ~/images')
+    tmux.run(_SESSION_IMAGE_DL, "wget {}".format(config.IMAGES_SHAS))
     for f in config.IMAGES:
-        tmux.run('image-dl', "wget {}".format(f))
+        tmux.run(_SESSION_IMAGE_DL, "wget {}".format(f))
 
 
 def are_images_downloaded():
@@ -85,13 +88,13 @@ def tripleo_setup():
         return True
 
     sudo("mkdir -p ~/instack", user='stack')
-    tmux.create_session("tripleo-host")
-    tmux.run('tripleo-host', "sudo curl -o /etc/yum.repos.d/slagle-openstack-m.repo https://copr.fedoraproject.org/coprs/slagle/openstack-m/repo/fedora-20/slagle-openstack-m-fedora-20.repo")  # NOQA
-    tmux.run('tripleo-host', "sudo sed -i 's#repos.fedorapeople.org/repos#rdo-stage.virt.bos.redhat.com#' /etc/yum.repos.d/rdo-release.repo")  # NOQA
-    tmux.run('tripleo-host', "sudo yum -y install instack-undercloud")
-    tmux.run('tripleo-host', "source {}".format(config.SOURCERC))
-    tmux.run('tripleo-host', "tripleo install-dependencies")
-    tmux.run('tripleo-host', "tripleo set-usergroup-membership")
+    tmux.create_session(_SESSION_TRIPLEO)
+    tmux.run(_SESSION_TRIPLEO, "sudo curl -o /etc/yum.repos.d/slagle-openstack-m.repo https://copr.fedoraproject.org/coprs/slagle/openstack-m/repo/fedora-20/slagle-openstack-m-fedora-20.repo")  # NOQA
+    tmux.run(_SESSION_TRIPLEO, "sudo sed -i 's#repos.fedorapeople.org/repos#rdo-stage.virt.bos.redhat.com#' /etc/yum.repos.d/rdo-release.repo")  # NOQA
+    tmux.run(_SESSION_TRIPLEO, "sudo yum -y install instack-undercloud")
+    tmux.run(_SESSION_TRIPLEO, "source {}".format(config.SOURCERC))
+    tmux.run(_SESSION_TRIPLEO, "tripleo install-dependencies")
+    tmux.run(_SESSION_TRIPLEO, "tripleo set-usergroup-membership")
 
 
 def user_membership():
@@ -124,6 +127,9 @@ def setup(block=False):
                 user_in_libvirtd = user_membership()
             if not images_downloaded:
                 images_downloaded = are_images_downloaded()
+
+        tmux.kill_session(_SESSION_IMAGE_DL)
+        tmux.kill_session(_SESSION_TRIPLEO)
 
 
 @task

@@ -45,23 +45,33 @@ def _ssh_to_undercloud(session):
     tmux.run(session, "stack")
 
 
+def _load_env(session):
+
+    tmux.run(session, 'source ~/deploy-overcloudrc')
+    tmux.run(session, 'source ~/tripleo-undercloud-passwords')
+    tmux.run(session, 'source ~/stackrc')
+    tmux.run(session, 'source /usr/share/instack-undercloud/deploy-virt-overcloudrc')  # NOQA
+
+
 def undercloud_setup():
     # step 6
 
-    _ssh_to_undercloud("undercloud")
-    tmux.run('undercloud', "sudo curl -o /etc/yum.repos.d/slagle-openstack-m.repo https://copr.fedoraproject.org/coprs/slagle/openstack-m/repo/fedora-20/slagle-openstack-m-fedora-20.repo")  # NOQA
-    tmux.run('undercloud', "sudo yum -y install https://repos.fedorapeople.org/repos/openstack/openstack-juno/rdo-release-juno-1.noarch.rpm")  # NOQA
-    tmux.run('undercloud', "sudo sed -i 's#repos.fedorapeople.org/repos#rdo-stage.virt.bos.redhat.com#' /etc/yum.repos.d/rdo-release.repo")  # NOQA
-    tmux.run('undercloud', "sudo yum -y install instack-undercloud")
+    session = 'undercloud'
+
+    _ssh_to_undercloud(session)
+    tmux.run(session, "sudo curl -o /etc/yum.repos.d/slagle-openstack-m.repo https://copr.fedoraproject.org/coprs/slagle/openstack-m/repo/fedora-20/slagle-openstack-m-fedora-20.repo")  # NOQA
+    tmux.run(session, "sudo yum -y install https://repos.fedorapeople.org/repos/openstack/openstack-juno/rdo-release-juno-1.noarch.rpm")  # NOQA
+    tmux.run(session, "sudo sed -i 's#repos.fedorapeople.org/repos#rdo-stage.virt.bos.redhat.com#' /etc/yum.repos.d/rdo-release.repo")  # NOQA
+    tmux.run(session, "sudo yum -y install instack-undercloud")
 
     # TODO: REMOVE THIS HACK WHEN THIS IS PAKAGED:
     # https://github.com/agroup/instack-undercloud/pull/112
     print("#" * 50)
     print("Patching instack. This is horrible.")
-    tmux.run('undercloud', "sudo sed -i -e 's/--public//g' /usr/bin/instack-prepare-for-overcloud")  # NOQA
+    tmux.run(session, "sudo sed -i -e 's/--public//g' /usr/bin/instack-prepare-for-overcloud")  # NOQA
     print("#" * 50)
 
-    tmux.run('undercloud', "instack-install-undercloud")
+    tmux.run(session, "instack-install-undercloud")
 
 
 def undercloud_copy_images():
@@ -85,10 +95,12 @@ def create():
     """Create and start virtual environment for instack"""
     # step 4 & 5
 
-    tmux.create_session("instack-virt")
-    tmux.run('instack-virt', 'sudo su - stack')
-    tmux.run('instack-virt', "source {}".format(config.SOURCERC))
-    tmux.run('instack-virt', "instack-virt-setup")
+    session = "u-instack-virt"
+
+    tmux.create_session(session)
+    tmux.run(session, 'sudo su - stack')
+    tmux.run(session, "source {}".format(config.SOURCERC))
+    tmux.run(session, "instack-virt-setup")
     setup()
 
 
@@ -144,28 +156,54 @@ def setup():
 
 
 @task
-def install_tuskar_from_review(changes_ref):
+def install_tuskarclient_from_review(changes_ref):
 
+    session = 'u-tuskarclient'
     gerrit = 'https://review.openstack.org/openstack/python-tuskarclient'
     _ssh_to_undercloud("tuskar-dev")
-    tmux.run('tuskar-dev', 'cd ~ && sudo rm -rf ~/python-tuskarclient')
-    tmux.run('tuskar-dev', 'git clone https://git.openstack.org/openstack/python-tuskarclient')  # NOQA
-    tmux.run('tuskar-dev', 'cd python-tuskarclient')
-    tmux.run('tuskar-dev', 'git fetch {0} {1}'.format(gerrit, changes_ref))
-    tmux.run('tuskar-dev', 'git checkout FETCH_HEAD')
-    tmux.run('tuskar-dev', 'sudo python setup.py install')
+
+    tmux.run(session, 'sudo pip uninstall python-tuskarclient')
+    tmux.run(session, 'cd ~ && sudo rm -rf ~/python-tuskarclient')
+    tmux.run(session, 'git clone https://git.openstack.org/openstack/python-tuskarclient')  # NOQA
+    tmux.run(session, 'cd python-tuskarclient')
+    tmux.run(session, 'git fetch {0} {1}'.format(gerrit, changes_ref))
+    tmux.run(session, 'git checkout FETCH_HEAD')
+    tmux.run(session, 'sudo pip install -I .')
 
 
 @task
-def install_tuskar_from_master():
+def install_tuskarclient_from_git(repo=None, branch=None):
 
-    _ssh_to_undercloud("tuskar-master")
-    tmux.run('tuskar-master', 'cd ~ && sudo rm -rf ~/python-tuskarclient')
-    tmux.run('tuskar-master', 'git clone https://git.openstack.org/openstack/python-tuskarclient')  # NOQA
-    tmux.run('tuskar-master', 'cd python-tuskarclient')
-    tmux.run('tuskar-master', 'sudo python setup.py install')
+    session = 'u-tuskarclient'
+
+    if repo is None:
+        repo = "https://git.openstack.org/openstack/python-tuskarclient"
+
+    if branch is None:
+        branch = "master"
+
+    _ssh_to_undercloud(session)
+    tmux.run(session, 'sudo pip uninstall python-tuskarclient')
+    tmux.run(session, 'cd ~ && sudo rm -rf ~/python-tuskarclient')
+    tmux.run(session, 'git clone {0} -b {1}'.format(repo, branch))
+    tmux.run(session, 'cd python-tuskarclient')
+    tmux.run(session, 'sudo pip install -I .')
+
+
+@task
+def install_tuskarclient_from_pypi(repo=None, branch=None):
+
+    session = 'u-tuskarclient'
+
+    _ssh_to_undercloud(session)
+    tmux.run(session, 'sudo pip uninstall python-tuskarclient')
+    tmux.run(session, 'sudo pip install -IU tuskar')
 
 
 @task
 def start_ssh_session(name):
-    _ssh_to_undercloud("undercloud-{0}".fomrat(name))
+    session_name = "-{0}".format(name)
+    _ssh_to_undercloud(session_name)
+    _load_env(session_name)
+
+    print("Started tmux session named {}".format(session_name))
