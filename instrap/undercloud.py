@@ -4,6 +4,7 @@ from time import sleep
 
 from fabric.api import task, sudo, cd
 from fabric.context_managers import hide
+from slugify import slugify
 
 from instrap import tmux, config
 
@@ -46,6 +47,9 @@ def _ssh_to_undercloud(session):
 
 
 def _load_env(session):
+
+    tmux.run(session, 'sudo cp /root/tripleo-undercloud-passwords ~/')
+    tmux.run(session, 'sudo cp /root/stackrc ~/')
 
     tmux.run(session, 'source ~/deploy-overcloudrc')
     tmux.run(session, 'source ~/tripleo-undercloud-passwords')
@@ -156,13 +160,24 @@ def setup():
 
 
 @task
+def _client_setup(session):
+    tmux.run(session, "sudo yum upgrade -y -q && sudo yum install -y -q vim ack")
+    tmux.run(session, "sudo pip install -U virtualenv virtualenvwrapper")
+    tmux.run(session, "echo \"\nsource /usr/bin/virtualenvwrapper.sh\" >> \"$(echo /home/stack/.bashrc)\"")  # NOQA
+    tmux.run(session, "source /usr/bin/virtualenvwrapper.sh")
+
+
+@task
 def install_tuskarclient_from_review(changes_ref):
 
     session = 'u-tuskarclient'
     gerrit = 'https://review.openstack.org/openstack/python-tuskarclient'
-    _ssh_to_undercloud("tuskar-dev")
 
-    tmux.run(session, 'sudo pip uninstall python-tuskarclient')
+    _ssh_to_undercloud(session)
+    _client_setup(session)
+
+    name = slugify(changes_ref, to_lower=True)
+    tmux.run(session, 'mkvirtualenv tuskarclient-review-{}'.format(name))
     tmux.run(session, 'cd ~ && sudo rm -rf ~/python-tuskarclient')
     tmux.run(session, 'git clone https://git.openstack.org/openstack/python-tuskarclient')  # NOQA
     tmux.run(session, 'cd python-tuskarclient')
@@ -183,7 +198,8 @@ def install_tuskarclient_from_git(repo=None, branch=None):
         branch = "master"
 
     _ssh_to_undercloud(session)
-    tmux.run(session, 'sudo pip uninstall python-tuskarclient')
+    _client_setup(session)
+    tmux.run(session, 'mkvirtualenv tuskarclient-git')
     tmux.run(session, 'cd ~ && sudo rm -rf ~/python-tuskarclient')
     tmux.run(session, 'git clone {0} -b {1}'.format(repo, branch))
     tmux.run(session, 'cd python-tuskarclient')
@@ -196,14 +212,16 @@ def install_tuskarclient_from_pypi(repo=None, branch=None):
     session = 'u-tuskarclient'
 
     _ssh_to_undercloud(session)
-    tmux.run(session, 'sudo pip uninstall python-tuskarclient')
+    _client_setup(session)
+    tmux.run(session, 'mkvirtualenv tuskarclient-pypi')
     tmux.run(session, 'sudo pip install -IU tuskar')
 
 
 @task
 def start_ssh_session(name):
-    session_name = "-{0}".format(name)
-    _ssh_to_undercloud(session_name)
-    _load_env(session_name)
+    session = "u-{0}".format(name)
+    _ssh_to_undercloud(session)
+    _client_setup(session)
+    _load_env(session)
 
-    print("Started tmux session named {}".format(session_name))
+    print("Started tmux session named {}".format(session))
