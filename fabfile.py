@@ -1,8 +1,8 @@
 from fabric.api import env, task
 
-from instrap import config, host, undercloud, overcloud  # NOQA
+from instrap import host, undercloud  # NOQA
 
-env.user = config.USER
+env.user = 'root'
 
 
 @task

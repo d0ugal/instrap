@@ -1,4 +1,3 @@
-awesome-slugify
 Fabric
 flake8
 MkDocs
