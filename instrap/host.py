@@ -1,12 +1,12 @@
 from __future__ import print_function
 
 from fabric.api import task, sudo, settings
+from fabric.context_managers import hide
 
 from instrap import tmux
 
 
 def yum():
-    # Step 0
     sudo('yum install -q -y deltarpm')
     sudo('yum upgrade -q -y')
     sudo('yum install -q -y tmux sshpass ack')
@@ -16,7 +16,6 @@ _SESSION_TRIPLEO = "h-tripleo-setup"
 
 
 def create_user():
-    # Step 1
     result = sudo('useradd stack', warn_only=True)
 
     if result.return_code != 0:
@@ -45,6 +44,17 @@ def setup(block=False):
         "curl https://raw.githubusercontent.com/rdo-management/instack-undercloud/master/scripts/instack-setup-host | bash -x")
 
     tmux.run("host-prep", "sudo yum install -y instack-undercloud")
+
+    while block:
+
+        with hide('running'):
+            pkg = "instack-undercloud"
+            installed = sudo("yum list installed {0}".format(pkg), user='stack')
+
+            if pkg in installed:
+                break
+
+            print("Waiting for {0} to be installed".format(pkg))
 
 
 @task

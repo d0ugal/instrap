@@ -33,7 +33,7 @@ def ip():
     if len(ips) > 1:
         print(undercloud_ip)
         print(ips)
-        raise Exception("Multiple IPs found")
+        raise Exception("Multiple IPs found: {0}".format(ips))
 
     undercloud_ip = ips.pop()
 
@@ -42,7 +42,7 @@ def ip():
     return undercloud_ip
 
 
-def _ssh_to_undercloud(session):
+def ssh_to_undercloud(session):
     undercloud_ip = ip()
 
     if not undercloud_ip:
@@ -52,6 +52,9 @@ def _ssh_to_undercloud(session):
     tmux.run(session, "ssh -oStrictHostKeyChecking=no root@{}".format(
         undercloud_ip))
     tmux.run(session, "su stack")
+    tmux.run(session, "cd ~")
+    tmux.run(session, "source ~/tripleo-undercloud-passwords")
+    tmux.run(session, "source ~/stackrc")
 
 
 @task
@@ -95,7 +98,7 @@ def setup():
         undercloud_ip = ip()
 
     session = "u-setup"
-    _ssh_to_undercloud(session)
+    ssh_to_undercloud(session)
     tmux.run(session,
         "curl https://raw.githubusercontent.com/rdo-management/instack-undercloud/master/scripts/instack-setup-host | bash -x")
     tmux.run(session, "sudo yum install -y instack-undercloud python-rdomanager-oscplugin")
@@ -106,6 +109,6 @@ def setup():
 def ssh(name):
     """Create an ssh session to the undercloud with the given name."""
     session = "u-{0}".format(name)
-    _ssh_to_undercloud(session)
+    ssh_to_undercloud(session)
 
     print("Started tmux session named {}".format(session))
