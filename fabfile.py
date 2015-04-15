@@ -1,14 +1,15 @@
+import os
 from fabric.api import env, task
 
 from instrap import host, undercloud, overcloud  # NOQA
 
-env.user = 'root'
+env.hosts = [os.environ['HOST'], ]
+env.user = "root"
 
 
 @task
 def full_under():
     """All in one. Setup the host and then undercloud."""
-    undercloud.destroy()
     host.setup(block=True)
     undercloud.create()
 

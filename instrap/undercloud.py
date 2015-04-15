@@ -5,6 +5,7 @@ from time import sleep
 from fabric.api import task, sudo
 from fabric.context_managers import hide
 from fabric.contrib import files
+from slugify import slugify
 
 from instrap import tmux
 
@@ -51,6 +52,7 @@ def ssh_to_undercloud(session):
     tmux.create_session(session)
     tmux.run(session, "ssh -oStrictHostKeyChecking=no root@{}".format(
         undercloud_ip))
+    sleep(1)
     tmux.run(session, "su stack")
     tmux.run(session, "cd ~")
     tmux.run(session, "source ~/tripleo-undercloud-passwords")
@@ -110,5 +112,53 @@ def ssh(name):
     """Create an ssh session to the undercloud with the given name."""
     session = "u-{0}".format(name)
     ssh_to_undercloud(session)
+    _client_setup(session)
 
     print("Started tmux session named {}".format(session))
+
+
+def _client_setup(session):
+    tmux.run(session, "sudo yum upgrade -y -q && sudo yum install -y -q vim ack")
+    tmux.run(session, "sudo pip install -U virtualenv virtualenvwrapper")
+    tmux.run(session, "echo \"\nsource /usr/bin/virtualenvwrapper.sh\" >> \"$(echo /home/stack/.bashrc)\"")  # NOQA
+    tmux.run(session, "source /usr/bin/virtualenvwrapper.sh")
+
+
+@task
+def tuskarclient_from_review(changes_ref):
+
+    session = 'u-tuskarclient'
+    gerrit = 'https://review.openstack.org/openstack/python-tuskarclient'
+
+    ssh_to_undercloud(session)
+    _client_setup(session)
+
+    name = slugify(changes_ref, to_lower=True)
+    tmux.run(session, 'rmvirtualenv tuskarclient-review-{}'.format(name))
+    tmux.run(session, 'mkvirtualenv tuskarclient-review-{}'.format(name))
+    tmux.run(session, 'cd ~ && rm -rf ~/python-tuskarclient')
+    tmux.run(session, 'git clone https://git.openstack.org/openstack/python-tuskarclient')  # NOQA
+    tmux.run(session, 'cd python-tuskarclient')
+    tmux.run(session, 'git fetch {0} {1}'.format(gerrit, changes_ref))
+    tmux.run(session, 'git checkout FETCH_HEAD')
+    tmux.run(session, 'pip install -I .')
+
+
+@task
+def rdomanager_from_review(changes_ref):
+
+    session = 'u-rdomanager'
+    gerrit = 'https://review.gerrithub.io/rdo-management/python-rdomanager-oscplugin'
+
+    ssh_to_undercloud(session)
+    _client_setup(session)
+
+    name = slugify(changes_ref, to_lower=True)
+    tmux.run(session, 'rmvirtualenv rdomanager-review-{}'.format(name))
+    tmux.run(session, 'mkvirtualenv rdomanager-review-{}'.format(name))
+    tmux.run(session, 'cd ~ && rm -rf ~/python-rdomanager-oscplugin')
+    tmux.run(session, 'git clone https://github.com/rdo-management/python-rdomanager-oscplugin.git')  # NOQA
+    tmux.run(session, 'cd python-rdomanager-oscplugin')
+    tmux.run(session, 'git fetch {0} {1}'.format(gerrit, changes_ref))
+    tmux.run(session, 'git checkout FETCH_HEAD')
+    tmux.run(session, 'pip install --editable .')
