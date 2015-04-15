@@ -39,11 +39,12 @@ def setup(block=False):
     yum()
     create_user()
 
-    tmux.create_session('host-prep')
-    tmux.run("host-prep",
+    session = "h-prep"
+    tmux.create_session(session)
+    tmux.run(session,
         "curl https://raw.githubusercontent.com/rdo-management/instack-undercloud/master/scripts/instack-setup-host | bash -x")
 
-    tmux.run("host-prep", "sudo yum install -y instack-undercloud")
+    tmux.run(session, "sudo yum install -y instack-undercloud")
 
     while block:
 

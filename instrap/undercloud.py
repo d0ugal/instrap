@@ -91,6 +91,9 @@ def destroy():
         sudo("virsh destroy {}".format(name), user="stack", warn_only=True)
         sudo("virsh undefine {}".format(name), user="stack")
 
+    tmux.kill_all_sessions('u-')
+    tmux.kill_all_sessions('o-')
+
 
 def setup():
     undercloud_ip = ip()

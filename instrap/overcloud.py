@@ -24,6 +24,12 @@ def register_nodes():
                        "--discoverd-url http://localhost:5050"))
 
 
+def setup_flavors():
+    session = 'o-setup-flavors'
+    undercloud.ssh_to_undercloud(session)
+    tmux.run(session, "instack-ironic-deployment --setup-flavors")
+
+
 @task
 def all():
 

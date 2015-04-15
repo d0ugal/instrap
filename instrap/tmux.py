@@ -18,3 +18,27 @@ def run(session, command):
 
 def get_buffer(session):
     sudo("tmux capture-pane -p -t {0} -S -1000".format(session), user="stack")
+
+
+def get_session_names():
+    r = sudo("tmux ls", user="stack", warn_only=True)
+
+    print r
+
+    for line in r.splitlines():
+
+        if ':' not in line:
+            continue
+
+        yield line.split(':', 1)[0]
+
+
+def kill_all_sessions(starting_with=None):
+
+    for session in get_session_names():
+
+        if starting_with is not None:
+            if not session.startswith(starting_with):
+                continue
+
+        kill_session(session)
