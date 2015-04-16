@@ -4,7 +4,6 @@ from time import sleep
 
 from fabric.api import task, sudo
 from fabric.context_managers import hide
-from fabric.contrib import files
 from slugify import slugify
 
 from instrap import tmux
@@ -55,6 +54,8 @@ def ssh_to_undercloud(session):
     sleep(1)
     tmux.run(session, "su stack")
     tmux.run(session, "cd ~")
+    tmux.run(session, "sudo cp /root/tripleo-undercloud-passwords .")
+    tmux.run(session, "sudo cp /root/stackrc .")
     tmux.run(session, "source ~/tripleo-undercloud-passwords")
     tmux.run(session, "source ~/stackrc")
 
@@ -66,10 +67,11 @@ def create():
     session = "u-instack-virt"
 
     tmux.create_session(session)
+    sleep(1)
     tmux.run(session, "cd ~")
     tmux.run(session, "export NODE_DIST=centos7")
     tmux.run(session, "export NODE_COUNT=4")
-    files.append('/etc/hosts', "127.0.0.1 localhost.localhost")
+    tmux.run(session, "sudo echo '127.0.0.1 localhost.localhost' >> /etc/hosts")
     tmux.run(session, "instack-virt-setup")
     setup()
 
@@ -121,7 +123,7 @@ def ssh(name):
 
 
 def _client_setup(session):
-    tmux.run(session, "sudo yum upgrade -y -q && sudo yum install -y -q vim ack")
+    tmux.run(session, "sudo yum upgrade -y -q && sudo yum install -y -q vim ack libffi-devel")
     tmux.run(session, "sudo pip install -U virtualenv virtualenvwrapper")
     tmux.run(session, "echo \"\nsource /usr/bin/virtualenvwrapper.sh\" >> \"$(echo /home/stack/.bashrc)\"")  # NOQA
     tmux.run(session, "source /usr/bin/virtualenvwrapper.sh")

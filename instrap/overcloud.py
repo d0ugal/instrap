@@ -24,6 +24,7 @@ def register_nodes():
                        "--discoverd-url http://localhost:5050"))
 
 
+@task
 def setup_flavors():
     session = 'o-setup-flavors'
     undercloud.ssh_to_undercloud(session)

@@ -11,9 +11,6 @@ def yum():
     sudo('yum upgrade -q -y')
     sudo('yum install -q -y tmux sshpass ack')
 
-_SESSION_IMAGE_DL = "h-image-dl"
-_SESSION_TRIPLEO = "h-tripleo-setup"
-
 
 def create_user():
     result = sudo('useradd stack', warn_only=True)
