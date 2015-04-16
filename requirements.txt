@@ -1,4 +1,4 @@
-awesome-slugify==1.6.1
+awesome-slugify==1.6.4
 Fabric==1.10.1
-flake8==2.2.5
+flake8==2.4.0
 MkDocs==0.12.1
