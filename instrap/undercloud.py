@@ -55,7 +55,9 @@ def ssh_to_undercloud(session):
     tmux.run(session, "su stack")
     tmux.run(session, "cd ~")
     tmux.run(session, "sudo cp /root/tripleo-undercloud-passwords .")
+    tmux.run(session, "sudo chown stack: tripleo-undercloud-passwords")
     tmux.run(session, "sudo cp /root/stackrc .")
+    tmux.run(session, "sudo chown stack: stackrc")
     tmux.run(session, "source ~/tripleo-undercloud-passwords")
     tmux.run(session, "source ~/stackrc")
 
@@ -109,6 +111,7 @@ def setup():
     tmux.run(session,
         "curl https://raw.githubusercontent.com/rdo-management/instack-undercloud/master/scripts/instack-setup-host | bash -x")
     tmux.run(session, "sudo yum install -y instack-undercloud python-rdomanager-oscplugin")
+    tmux.run(session, "sudo hostnamectl set-hostname localhost")
     tmux.run(session, "openstack undercloud install")
 
 
@@ -167,3 +170,16 @@ def rdomanager_from_review(changes_ref):
     tmux.run(session, 'git fetch {0} {1}'.format(gerrit, changes_ref))
     tmux.run(session, 'git checkout FETCH_HEAD')
     tmux.run(session, 'pip install --editable .')
+
+
+@task
+def install_repo(virtualenv, repo):
+
+    session = virtualenv
+
+    ssh_to_undercloud(session)
+    _client_setup(session)
+
+    tmux.run(session, 'rmvirtualenv {}'.format(virtualenv))
+    tmux.run(session, 'mkvirtualenv {}'.format(virtualenv))
+    tmux.run(session, 'pip install git+{}'.format(repo))

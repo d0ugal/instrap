@@ -15,24 +15,18 @@ def build_images():
 
 
 @task
-def register_nodes():
-    session = 'o-register-nodes'
+def deploy_prep():
+    session = 'o-deploy-prep'
     undercloud.ssh_to_undercloud(session)
-    tmux.run(session, "jq '.nodes' instackenv.json > instacknodes.json")
-    tmux.run(session, "openstack baremetal import ~/instacknodes.json --json")
+    tmux.run(session, "openstack baremetal import ~/instackenv.json --json --debug")
+    tmux.run(session, "openstack baremetal configure boot --debug")
     tmux.run(session, ("openstack baremetal introspection all start "
-                       "--discoverd-url http://localhost:5050"))
-
-
-@task
-def setup_flavors():
-    session = 'o-setup-flavors'
-    undercloud.ssh_to_undercloud(session)
+                       "--discoverd-url http://localhost:5050 --debug"))
     tmux.run(session, "instack-ironic-deployment --setup-flavors")
 
 
 @task
-def all():
-
-    build_images()
-    register_nodes()
+def deploy():
+    session = 'o-deploy'
+    undercloud.ssh_to_undercloud(session)
+    tmux.run(session, "openstack overcloud deploy --debug")
